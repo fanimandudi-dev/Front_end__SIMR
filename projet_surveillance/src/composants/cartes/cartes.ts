@@ -2,7 +2,6 @@ import { AfterViewInit, Component, OnInit, signal } from '@angular/core';
 import * as L from 'leaflet';
 import { ApiService } from '../../services/api-service';
 
-
 @Component({
   selector: 'app-cartes',
   imports: [],
@@ -82,10 +81,7 @@ export class Cartes implements OnInit, AfterViewInit {
   }
 
   lancerIA() {
-    // Vous pouvez garder cette fonction pour le bouton "Relancer l'IA"
     this.isAnalyzing.set(true);
-    // Assurez-vous que la fonction s'appelle bien "triggerDbscan" ou "lancerAnalyseDBSCAN" dans votre api.service.ts
-    // D'après votre api.service.ts c'est : triggerDbscan()
     this.apiService.triggerDbscan().subscribe(
       (res) => {
         this.chargerDonneesCartographiques();
@@ -99,8 +95,8 @@ export class Cartes implements OnInit, AfterViewInit {
   }
 
   private dessinerElements(): void {
-    // Nettoyer la carte avant de redessiner
-    this.map.eachLayer((layer) => {
+    // Nettoyer la carte avant de redessiner (FIX : layer typé avec L.Layer)
+    this.map.eachLayer((layer: L.Layer) => {
       if (layer instanceof L.Circle || layer instanceof L.CircleMarker) {
         this.map.removeLayer(layer);
       }
