@@ -1,0 +1,327 @@
+<div class="space-y-6 animate-fade-in h-full flex flex-col">
+
+    <!-- En-tête -->
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800">Numérisation SIMR (OCR)</h2>
+        <p class="text-slate-500">Importez les fiches papier pour une extraction automatique par Intelligence
+            Artificielle.</p>
+    </div>
+
+    <!-- NOTIFICATION -->
+    @if (notification.show) {
+    <div [class.bg-green-50]="notification.type === 'success'"
+        [class.border-green-200]="notification.type === 'success'"
+        [class.text-green-800]="notification.type === 'success'" [class.bg-red-50]="notification.type === 'error'"
+        [class.border-red-200]="notification.type === 'error'" [class.text-red-800]="notification.type === 'error'"
+        class="p-4 rounded-xl border flex items-start gap-3 shadow-sm animate-fade-in">
+
+        @if (notification.type === 'success') {
+        <svg class="w-6 h-6 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        } @else {
+        <svg class="w-6 h-6 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        }
+        <div class="flex-1">
+            <h3 class="font-bold text-sm">{{ notification.type === 'success' ? 'Opération réussie' : 'Échec de
+                l\'opération' }}</h3>
+            <p class="text-sm mt-1 opacity-90">{{ notification.message }}</p>
+        </div>
+        <button (click)="notification.show = false" class="p-1 hover:bg-white/50 rounded-md transition-colors">
+            <svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    }
+
+    <!-- ============================================== -->
+    <!-- ÉTAPE 1 : ZONE D'UPLOAD -->
+    <!-- ============================================== -->
+    @if (etape() === 'UPLOAD') {
+    <div class="flex-1 flex items-center justify-center bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="text-center max-w-md w-full">
+            <label
+                class="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors relative"
+                [class.opacity-50]="isUploading()">
+
+                @if (!isUploading()) {
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-12 h-12 mb-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p class="mb-2 text-sm text-slate-500"><span class="font-semibold text-secondaire">Cliquez pour
+                            importer</span> ou glissez l'image</p>
+                    <p class="text-xs text-slate-400">JPG, PNG (MAX. 5Mo)</p>
+                </div>
+                }
+
+                @if (isUploading()) {
+                <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 rounded-lg">
+                    <svg class="animate-spin h-10 w-10 text-secondaire mb-4" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    <p class="text-sm font-medium text-slate-600 animate-pulse">Extraction du texte en cours par l'IA...
+                    </p>
+                </div>
+                }
+                <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)"
+                    [disabled]="isUploading()" />
+            </label>
+        </div>
+    </div>
+    }
+
+    <!-- ============================================== -->
+    <!-- ÉTAPE 2 : ÉCRAN DE VALIDATION / CORRECTION -->
+    <!-- ============================================== -->
+    @if (etape() === 'VALIDATION') {
+    <div class="flex flex-col lg:flex-row gap-6 w-full">
+
+        <!-- GAUCHE : L'Image Scannée -->
+        <div
+            class="w-full lg:w-1/3 bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col min-h-[300px] lg:min-h-[600px] sticky top-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-800">Fiche Originale</h3>
+                <span class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600 border hidden sm:block">Zoom:
+                    100%</span>
+            </div>
+            <div class="flex-1 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center p-2 relative">
+                <img [src]="imagePreview()" alt="Aperçu SIMR" class="absolute inset-0 w-full h-full object-contain">
+            </div>
+        </div>
+
+        <!-- DROITE : Formulaire Extrait (Même design que la saisie manuelle !) -->
+        <div class="w-full lg:w-2/3 bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 flex flex-col">
+
+            <!-- L'En-tête OCR Spécial -->
+            <div
+                class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2 pb-4 border-b border-slate-100">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">Données extraites</h3>
+                    <p class="text-xs text-slate-500">Vérifiez et complétez les informations manquantes.</p>
+                </div>
+
+                <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded border">
+                    <span class="text-xs text-slate-500 font-medium">Confiance IA :</span>
+                    <span [class.bg-green-100]="ocrResult().confiance > 80"
+                        [class.text-green-700]="ocrResult().confiance > 80"
+                        [class.bg-orange-100]="ocrResult().confiance <= 80"
+                        [class.text-orange-700]="ocrResult().confiance <= 80"
+                        class="text-sm font-bold px-2 py-0.5 rounded shadow-sm">
+                        {{ ocrResult().confiance }}%
+                    </span>
+                </div>
+            </div>
+
+            <form class="space-y-6 flex-1">
+
+                <!-- IDENTITÉ DU PATIENT -->
+                <div>
+                    <h3 class="font-bold text-slate-700 uppercase tracking-wider text-xs mb-3 text-secondaire">1.
+                        Identité du patient</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Nom <span
+                                    class="text-alerte">*</span></label>
+                            <input type="text" [(ngModel)]="ocrResult().patientNom" name="nom"
+                                class="w-full px-3 py-2 bg-blue-50/30 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none uppercase text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Prénom <span
+                                    class="text-alerte">*</span></label>
+                            <input type="text" [(ngModel)]="ocrResult().patientPrenom" name="prenom"
+                                class="w-full px-3 py-2 bg-blue-50/30 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Post-nom</label>
+                            <input type="text" [(ngModel)]="ocrResult().patientPostnom" name="postnom"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Date de naissance</label>
+                            <input type="date" [(ngModel)]="ocrResult().dateNaissance" name="dateNaissance"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-slate-600 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Sexe <span
+                                    class="text-alerte">*</span></label>
+                            <select [(ngModel)]="ocrResult().sexe" name="sexe"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-sm">
+                                <option value="M">Masculin</option>
+                                <option value="F">Féminin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">N° Téléphone</label>
+                            <input type="tel" [(ngModel)]="ocrResult().telephone" name="telephone" placeholder="+243..."
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOCALISATION -->
+                <div>
+                    <h3 class="font-bold text-slate-700 uppercase tracking-wider text-xs mb-3 mt-6 text-secondaire">2.
+                        Localisation (DBSCAN)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Commune / Zone <span
+                                    class="text-alerte">*</span></label>
+                            <input type="text" [(ngModel)]="ocrResult().commune" name="commune"
+                                class="w-full px-3 py-2 bg-blue-50/30 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Quartier <span
+                                    class="text-alerte">*</span></label>
+                            <input type="text" [(ngModel)]="ocrResult().quartier" name="quartier"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Avenue</label>
+                            <input type="text" [(ngModel)]="ocrResult().avenue" name="avenue"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">N° Résidence</label>
+                            <input type="text" [(ngModel)]="ocrResult().numeroResidence" name="numero"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CLINIQUE -->
+                <div>
+                    <h3 class="font-bold text-slate-700 uppercase tracking-wider text-xs mb-3 mt-6 text-secondaire">3.
+                        Clinique</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Maladie suspectée <span
+                                    class="text-alerte">*</span></label>
+                            <select [(ngModel)]="ocrResult().idMaladie" name="maladie"
+                                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-sm">
+                                @for (maladie of maladies; track maladie.id) {
+                                <option [value]="maladie.id">{{ maladie.nom }}</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Statut du cas <span
+                                    class="text-alerte">*</span></label>
+                            <select [(ngModel)]="ocrResult().statutId" name="statut"
+                                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none font-bold text-slate-700 text-sm">
+                                <option [value]="1">Suspect (En attente)</option>
+                                <option [value]="2">Confirmé</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ============================================== -->
+                    <!-- GESTION DYNAMIQUE DES SYMPTÔMES (Idem Manuel) -->
+                    <!-- ============================================== -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block text-sm font-medium text-slate-700">Symptômes observés</label>
+                            <button type="button" (click)="ajouterSymptome()"
+                                class="text-xs font-bold text-secondaire hover:text-blue-700 flex items-center gap-1 bg-white px-2 py-1 rounded border shadow-sm transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                Ajouter
+                            </button>
+                        </div>
+
+                        <div class="space-y-3">
+                            @for (symptome of ocrResult().symptomes; track $index; let i = $index) {
+                            <div
+                                class="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white p-3 rounded border border-slate-100 shadow-sm animate-fade-in">
+
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <input type="checkbox" [checked]="symptome.type === 'AUTRE'"
+                                        (change)="symptome.type = $event.target.checked ? 'AUTRE' : 'OFFICIEL'; symptome.valeur = ''; symptome.autreValeur = ''"
+                                        class="w-4 h-4 text-secondaire rounded border-gray-300 focus:ring-secondaire"
+                                        [id]="'checkAutreOCR'+i">
+                                    <label [for]="'checkAutreOCR'+i"
+                                        class="text-xs font-medium text-slate-500 cursor-pointer">Autre</label>
+                                </div>
+
+                                @if (symptome.type === 'OFFICIEL') {
+                                <select [(ngModel)]="symptome.valeur" [name]="'sympSelectOCR'+i"
+                                    class="flex-1 w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-sm">
+                                    <option value="" disabled selected>-- Choisir un symptôme --</option>
+                                    @for (sympOfficiel of symptomesOfficiels; track sympOfficiel) {
+                                    <option [value]="sympOfficiel">{{ sympOfficiel }}</option>
+                                    }
+                                </select>
+                                }
+
+                                @if (symptome.type === 'AUTRE') {
+                                <input type="text" [(ngModel)]="symptome.autreValeur" [name]="'sympInputOCR'+i"
+                                    placeholder="Saisir manuellement..."
+                                    class="flex-1 w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none text-sm placeholder-blue-300 text-blue-800">
+                                }
+
+                                <button type="button" (click)="supprimerSymptome(i)"
+                                    [disabled]="ocrResult().symptomes.length === 1"
+                                    class="text-red-400 hover:text-red-600 p-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- Boutons d'action -->
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+                <button type="button" (click)="annuler()"
+                    class="w-full sm:w-auto px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors order-2 sm:order-1">
+                    Annuler l'import
+                </button>
+                <button type="button" (click)="validerFiche()" [disabled]="isSubmitting"
+                    class="w-full sm:w-auto px-6 py-2 text-white bg-secondaire hover:bg-blue-600 rounded-lg font-medium shadow-sm transition-colors flex items-center justify-center gap-2 order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    @if(isSubmitting) {
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    Validation...
+                    } @else {
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Valider et Enregistrer
+                    }
+                </button>
+            </div>
+
+        </div>
+    </div>
+    }
+
+</div>

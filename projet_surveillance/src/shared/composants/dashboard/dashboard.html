@@ -1,0 +1,185 @@
+<div class="max-w-7xl mx-auto">
+  
+  <!-- En-tête de bienvenue dynamique -->
+  <div class="mb-8 flex justify-between items-end">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-900">
+        Bonjour, {{ userRole === 'MCZ' ? 'Dr. ' + userName : (userRole === 'MEDECIN' ? 'Dr. ' + userName : 'Inf. ' + userName) }}
+      </h2>
+      <p class="text-slate-500 mt-1">
+        {{ userRole === 'MCZ' ? 'Voici le résumé épidémiologique de votre zone de santé.' : 'Voici le résumé des activités de saisie pour ' + userCentre + '.' }}
+      </p>
+    </div>
+
+    <!-- 🌟 NOUVEAU BOUTON : Visible uniquement pour le MCZ -->
+    @if (userRole === 'MCZ') {
+    <button (click)="lancerIA()" [disabled]="isAnalyzing()"
+      class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-md shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed">
+      
+      <!-- Icône de chargement ou Icône d'IA (Cerveau/Sparkles) -->
+      @if (isAnalyzing()) {
+        <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Analyse en cours...</span>
+      } @else {
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        <span>Lancer Analyse DBSCAN</span>
+      }
+    </button>
+    }
+  </div>
+
+  <!-- Suite de votre code existant (les cartes statistiques...) -->
+
+    <!-- Ne s'affiche que si les données Python sont arrivées -->
+    @if (stats()) {
+
+    <!-- DASHBOARD MCZ (Admin) -->
+    @if (userRole === 'MCZ') {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Nouveaux Cas (7j)</p>
+                    <h3 class="text-3xl font-bold text-slate-900">{{ stats()?.nouveauxCas }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Clusters Actifs (DBSCAN)</p>
+                    <h3 class="text-3xl font-bold text-slate-900">{{ stats()?.clustersActifs }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Fiches OCR en Attente</p>
+                    <h3 class="text-3xl font-bold text-slate-900">{{ stats()?.fichesAttente }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- DASHBOARD MEDECIN / INFIRMIER (Saisie) -->
+    @else {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Cas Soumis (Aujourd'hui)</p>
+                    <h3 class="text-3xl font-bold text-slate-900">{{ stats()?.casSoumisAujourdhui }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Cas Soumis (Cette Semaine)</p>
+                    <h3 class="text-3xl font-bold text-slate-900">{{ stats()?.casSoumisSemaine }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 mb-1">Taux de précision Géocodage</p>
+                    <h3 class="text-3xl font-bold text-slate-900">{{ stats()?.tauxSaisieReussie }}%</h3>
+                </div>
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    } @else {
+    <!-- Skeleton Loading en attendant la réponse de Python -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-slate-200 animate-pulse rounded-2xl h-32"></div>
+        <div class="bg-slate-200 animate-pulse rounded-2xl h-32"></div>
+        <div class="bg-slate-200 animate-pulse rounded-2xl h-32"></div>
+    </div>
+    }
+
+    <!-- ALERTES RÉCENTES (Visibles pour tous) -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-slate-900">Activité Récente</h3>
+            <button class="text-sm font-medium text-indigo-600 hover:text-indigo-700">Tout voir</button>
+        </div>
+
+        <div class="divide-y divide-slate-100">
+            @for (alerte of alertes; track alerte.desc) {
+            <div class="p-6 hover:bg-slate-50 transition-colors flex items-start gap-4">
+                <div class="w-2 h-2 mt-2 rounded-full flex-shrink-0"
+                    [class.bg-rose-500]="alerte.type === 'NOUVEAU CLUSTER'"
+                    [class.bg-emerald-500]="alerte.type === 'SOUS CONTRÔLE'">
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <h4 class="text-sm font-bold text-slate-900">{{ alerte.type }} • {{ alerte.zone }}</h4>
+                        <span class="text-xs font-medium text-slate-400">{{ alerte.date }}</span>
+                    </div>
+                    <p class="text-sm text-slate-600">{{ alerte.desc }}</p>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+
+</div>

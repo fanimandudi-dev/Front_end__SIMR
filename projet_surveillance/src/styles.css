@@ -1,0 +1,22 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+
+@theme {
+    --color-primaire: #0f172a;
+    /* Bleu nuit */
+    --color-secondaire: #3b82f6;
+    /* Bleu clair */
+    --color-alerte: #ef4444;
+    /* Rouge clusters */
+    --color-succes: #22c55e;
+    /* Vert fiches */
+}
+
+
+
+
+body {
+    background-color: #f8fafc;
+}

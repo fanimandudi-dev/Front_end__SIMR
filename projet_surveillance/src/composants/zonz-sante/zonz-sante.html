@@ -1,0 +1,220 @@
+<div class="max-w-6xl mx-auto space-y-6 animate-fade-in pb-10 relative">
+
+    <!-- ============================================================== -->
+    <!-- MODALE DE CONFIRMATION (POPUP) -->
+    <!-- ============================================================== -->
+    @if (showModal()) {
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-6 bg-red-50 border-b border-red-100 flex items-center gap-4">
+                <div
+                    class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">Confirmer la modification</h3>
+                    <p class="text-sm text-red-600 font-medium">Attention, impact sur tout le système.</p>
+                </div>
+            </div>
+            <div class="p-6 text-slate-600 text-sm space-y-4">
+                <p>Vous êtes sur le point de modifier les informations de la Zone de Santé (<b>{{ zoneActuelle()?.nom
+                        }}</b>).</p>
+                <p>La modification du <b>Code Zone</b> ou du nom affectera l'algorithme DBSCAN et l'historique des
+                    clusters épidémiques.</p>
+                <p class="font-medium text-slate-800">Êtes-vous absolument sûr de vouloir appliquer ces changements ?
+                </p>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button type="button" (click)="annulerSauvegarde()"
+                    class="px-5 py-2 text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg font-medium transition-colors">
+                    Annuler
+                </button>
+                <button type="button" (click)="executerSauvegarde()"
+                    class="px-5 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2">
+                    Confirmer la mise à jour
+                </button>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- ============================================================== -->
+    <!-- ZONE DE NOTIFICATION (SUCCÈS / ERREUR) -->
+    <!-- ============================================================== -->
+    @if (notification().show) {
+    <div [class.bg-green-50]="notification().type === 'success'"
+        [class.border-green-200]="notification().type === 'success'"
+        [class.text-green-800]="notification().type === 'success'" [class.bg-red-50]="notification().type === 'error'"
+        [class.border-red-200]="notification().type === 'error'" [class.text-red-800]="notification().type === 'error'"
+        class="p-4 rounded-xl border flex items-start gap-3 shadow-sm animate-fade-in">
+
+        @if (notification().type === 'success') {
+        <svg class="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        } @else {
+        <svg class="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        }
+        <div class="flex-1">
+            <h3 class="font-bold text-sm">{{ notification().type === 'success' ? 'Opération réussie' : 'Échec de
+                l\'opération' }}</h3>
+            <p class="text-sm mt-1 opacity-90">{{ notification().message }}</p>
+        </div>
+    </div>
+    }
+
+    <!-- ============================================================== -->
+    <!-- EN TÊTE DE PAGE -->
+    <!-- ============================================================== -->
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800">Configuration de la Zone de Santé</h2>
+        <p class="text-slate-500">Paramétrage du niveau hiérarchique principal de votre système d'information.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- COLONNE GAUCHE : FORMULAIRE -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-700 mb-4 uppercase tracking-wider text-sm border-b pb-2">
+                    {{ zoneActuelle() ? 'Modifier la Zone' : 'Nouvelle Zone' }}
+                </h3>
+
+                <form (ngSubmit)="preparerSauvegarde()" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Nom de la Zone <span
+                                class="text-alerte">*</span></label>
+                        <input type="text" [(ngModel)]="zoneData.nom" name="nom" required
+                            placeholder="Ex: Zone de Limete"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Code Zone (Unique) <span
+                                class="text-alerte">*</span></label>
+                        <input type="text" [(ngModel)]="zoneData.code" name="code" required placeholder="Ex: ZS-LIM-01"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none uppercase font-mono text-sm tracking-wider">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Province</label>
+                        <input type="text" [(ngModel)]="zoneData.province" name="province"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none capitalize">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Population Totale Estimée</label>
+                        <input type="number" [(ngModel)]="zoneData.population" name="population"
+                            placeholder="Ex: 150000"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondaire focus:outline-none">
+                    </div>
+
+                    <button type="submit" [disabled]="isSubmitting()"
+                        class="w-full bg-secondaire text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors disabled:opacity-50 mt-4 flex items-center justify-center gap-2">
+                        @if(isSubmitting()) {
+                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Traitement...
+                        } @else {
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        {{ zoneActuelle() ? 'Mettre à jour' : 'Créer la Zone' }}
+                        }
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE : AFFICHAGE COMPLET DES INFOS DE LA ZONE -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
+
+                <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold uppercase tracking-wider text-sm text-slate-300 mb-1">Périmètre d'Action
+                            Global</h3>
+                        <p class="text-2xl font-bold">{{ zoneActuelle() ? zoneActuelle().nom : 'Aucune Zone Configurée'
+                            }}</p>
+                    </div>
+                    @if (zoneActuelle()) {
+                    <div
+                        class="px-3 py-1 bg-white/20 rounded font-mono text-sm border border-white/30 backdrop-blur-sm shadow-sm">
+                        {{ zoneActuelle().code }}
+                    </div>
+                    }
+                </div>
+
+                @if (zoneActuelle()) {
+                <div class="p-6 flex-1 bg-slate-50">
+                    <!-- Statistiques / Infos Globales -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm text-center">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-1">Province</p>
+                            <p class="font-bold text-slate-800">{{ zoneActuelle().province || 'Non défini' }}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm text-center">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-1">Population</p>
+                            <p class="font-bold text-secondaire">{{ zoneActuelle().population | number }} <span
+                                    class="text-xs text-slate-400">hab.</span></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm text-center">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-1">Aires de Santé</p>
+                            <p class="font-bold text-slate-800">3 <span
+                                    class="text-xs font-normal text-slate-400">(Estimé)</span></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-slate-100 shadow-sm text-center">
+                            <p class="text-xs font-bold text-slate-400 uppercase mb-1">Centres Médicaux</p>
+                            <p class="font-bold text-slate-800">3 <span
+                                    class="text-xs font-normal text-slate-400">(Estimé)</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Liste des Médecins / Responsables (Démo visuelle) -->
+                    <h4
+                        class="font-bold text-slate-700 text-sm uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">
+                        Direction de la Zone</h4>
+                    <div class="flex items-center gap-4 bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
+                        <div
+                            class="w-12 h-12 rounded-full bg-blue-100 text-secondaire flex items-center justify-center font-bold text-lg">
+                            MZ
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800">Médecin Chef de Zone (MCZ)</p>
+                            <p class="text-sm text-slate-500">Administrateur principal du système</p>
+                        </div>
+                        <span
+                            class="ml-auto bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold shadow-sm">ACTIF</span>
+                    </div>
+
+                </div>
+                } @else {
+                <div class="p-10 flex-1 flex flex-col items-center justify-center text-slate-400">
+                    <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <p class="text-center font-medium">L'environnement n'est pas encore initialisé.</p>
+                    <p class="text-xs mt-1">Créez la Zone de Santé pour débloquer les autres modules (Aires, Centres).
+                    </p>
+                </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
