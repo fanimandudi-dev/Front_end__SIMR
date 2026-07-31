@@ -1,0 +1,46 @@
+# Compiled output
+vscode/
+Back_end/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Node & Dépendances (bloque node_modules même dans projet_surveillance)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Angular & Build
+.angular/
+.sass-cache/
+connect.lock
+coverage/
+libpeerconnection.log
+testem.log
+typings/
+__screenshots__/
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
