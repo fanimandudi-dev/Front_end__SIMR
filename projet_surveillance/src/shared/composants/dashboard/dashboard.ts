@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
+import { DatePipe } from '@angular/common'; // 👈 1. Import du DatePipe
 import { ApiService } from '../../../services/api-service';
-
 
 export interface DashboardStats {
   nouveauxCas?: number;
@@ -13,7 +13,7 @@ export interface DashboardStats {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  imports: [DatePipe], // 👈 2. Ajout au tableau imports
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -23,15 +23,10 @@ export class Dashboard {
   userName = '';
   userCentre = '';
   idCentre = 0;
-  // 🌟 NOUVEAU : Signal pour stocker les vraies notifications
+
   notifications = signal<any[]>([]);
-
   stats = signal<DashboardStats | null>(null);
-
-  // 🌟 NOUVEAU : Variable pour gérer le bouton de chargement
   isAnalyzing = signal<boolean>(false);
-
-
 
   constructor(private apiService: ApiService) { }
 
@@ -44,10 +39,9 @@ export class Dashboard {
     this.idCentre = centreIdStr ? parseInt(centreIdStr, 10) : 0;
 
     this.chargerStats();
-    this.chargerNotifications(); // 🌟 Appel initial
+    this.chargerNotifications();
   }
 
-  // 🌟 NOUVEAU : On isole le chargement pour pouvoir le rappeler
   chargerStats() {
     this.apiService.getDashboardStats(this.userRole, this.idCentre).subscribe({
       next: (data) => this.stats.set(data),
@@ -55,15 +49,14 @@ export class Dashboard {
     });
   }
 
-  // 🌟 NOUVEAU : La fonction qui déclenche l'IA
   lancerIA() {
     this.isAnalyzing.set(true);
     this.apiService.lancerAnalyseDBSCAN().subscribe({
       next: (response) => {
-        alert("✅ " + response.message); // Ou un joli Toast
+        alert("✅ " + response.message);
         this.isAnalyzing.set(false);
-        // On recharge les stats pour voir le nombre de clusters augmenter !
         this.chargerStats();
+        this.chargerNotifications(); // On recharge aussi les notifs générées par DBSCAN
       },
       error: (err) => {
         alert("❌ Erreur lors de l'exécution de l'algorithme.");
@@ -73,9 +66,6 @@ export class Dashboard {
     });
   }
 
-
-
-  // 🌟 NOUVEAU : Fonction pour charger les notifs
   chargerNotifications() {
     this.apiService.getNotifications(this.userRole).subscribe({
       next: (data) => this.notifications.set(data),
@@ -83,15 +73,11 @@ export class Dashboard {
     });
   }
 
-
-
-
   marquerNotifLue(notif: any) {
-    if (notif.est_lue) return; // Si déjà lue, on ne fait rien
+    if (notif.est_lue) return;
 
     this.apiService.marquerNotificationLue(notif.id).subscribe({
       next: () => {
-        // Mise à jour visuelle immédiate
         const misesAJour = this.notifications().map(n =>
           n.id === notif.id ? { ...n, est_lue: true } : n
         );
@@ -99,7 +85,4 @@ export class Dashboard {
       }
     });
   }
-
-
-
 }
