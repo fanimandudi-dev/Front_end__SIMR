@@ -221,4 +221,21 @@ export class ApiService {
     return this.http.post(`${API_URL}/cas`, data).pipe(catchError(this.handleError));
   }
 
+
+
+
+  // Dans api.service.ts
+  getNotifications(role: string): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/notifications?role=${role}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  marquerNotificationLue(id: number): Observable<any> {
+    return this.http.put(`${API_URL}/notifications/${id}/lire`, {})
+      .pipe(catchError(this.handleError));
+  } 
+
+
+
+
 }
