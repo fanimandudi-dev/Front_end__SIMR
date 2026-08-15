@@ -95,12 +95,6 @@ export class Cartes implements OnInit, AfterViewInit {
         this.isLoading.set(false);
       }
     );
-
-    console.log("Clusters réels :", this.clustersReels);
-    console.log("Bruit réel :", this.bruitReel);
-    console.log("Nombre de clusters :", this.nbClusters());
-    console.log("Nombre de cas isolés :", this.nbCasIsoles());
-
   }
 
   lancerIA() {

@@ -6,7 +6,7 @@ import { catchError, delay, Observable, of, throwError } from 'rxjs';
 // ==========================================
 // INTERFACES TYPESCRIPT
 // ==========================================
-const API_URL: string = 'http://localhost:8000/api';
+const API_URL: string = 'https://api-simr.onrender.com/api';
 
 export interface DashboardStats {
   nouveauxCas: number;
